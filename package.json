@@ -1,0 +1,33 @@
+{
+  "name": "pactum-flow-plugin",
+  "version": "0.0.1",
+  "description": "plugin to publish flows, interactions and run contract tests locally",
+  "main": "./src/index.js",
+  "files": [
+    "/src"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pactumjs/pactum-flow-plugin.git"
+  },
+  "keywords": [
+    "pactum",
+    "pactumjs",
+    "flow",
+    "contract",
+    "plugin",
+    "reporter"
+  ],
+  "author": "Anudeep <asa.anudeep4@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pactumjs/pactum-flow-plugin/issues"
+  },
+  "homepage": "https://github.com/pactumjs/pactum-flow-plugin#readme",
+  "dependencies": {
+    "phin": "^3.5.1"
+  }
+}

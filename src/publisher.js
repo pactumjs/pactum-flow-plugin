@@ -24,7 +24,7 @@ async function createProject() {
       }
     });
     if (postResponse.statusCode !== 200) {
-      // log error
+      console.log('Project Creation Failed')
       throw 'Project Creation Failed';
     }
   }
@@ -41,14 +41,13 @@ async function createAnalysis() {
     }
   });
   if (response.statusCode !== 200) {
-    // log error
+    console.log('Analysis Creation Failed')
     throw 'Analysis Creation Failed';
   }
   return JSON.parse(response.body)._id;
 }
 
-async function uploadInteractions(id) {
-  const interactions = store.getInteractions();
+async function uploadInteractions(id, interactions) {
   if (interactions.length > 0) {
     interactions.forEach(interaction => interaction.analysisId = id);
     const response = await phin({
@@ -57,23 +56,37 @@ async function uploadInteractions(id) {
       data: interactions
     });
     if (response.statusCode !== 200) {
-      // log error
+      console.log('Uploading Interactions Failed')
       throw 'Uploading Interactions Failed';
     }
+    return JSON.parse(response.body);
   }
+  return [];
 }
 
-async function uploadFlows(id) {
-  const flows = store.getFlows();
+async function uploadFlows(id, flows, interactions) {
   if (flows.length > 0) {
-    flows.forEach(flow => flow.analysisId = id);
+    flows.forEach(flow => {
+      flow.analysisId = id
+      if (flow.interactions.length > 0) {
+        const ids = [];
+        for (let i = 0; i < flow.interactions.length; i++) {
+          const flowInteraction = flow.interactions[i];
+          const match = interactions.find(interaction => interaction.provider === flowInteraction.provider && interaction.flow === flowInteraction.flow);
+          if (match && match._id) {
+            ids.push(match._id);
+          }
+        }
+        flow.interactions = ids;
+      }
+    });
     const response = await phin({
       method: 'POST',
       url: `${config.url}/api/flow/v1/flows`,
       data: flows
     });
     if (response.statusCode !== 200) {
-      // log error
+      console.log('Uploading Flows Failed')
       throw 'Uploading Flows Failed';
     }
   }
@@ -86,19 +99,24 @@ async function process(id) {
     data: { id }
   });
   if (response.statusCode !== 202) {
-    // log error
+    console.log('Process Failed')
     throw 'Process Failed';
   }
 }
 
 async function publish() {
   validate();
-  await createProject();
-  const id = await createAnalysis();
-  await uploadInteractions(id);
-  await uploadFlows(id);
-  await process(id);
-  console.log('Finished Publishing')
+  const flows = store.getFlows();
+  const interactions = store.getInteractions();
+  if (flows.length > 0 || interactions.length > 0) {
+    await createProject();
+    const id = await createAnalysis();
+    const _interactions = await uploadInteractions(id, interactions);
+    await uploadFlows(id, flows, _interactions);
+    await process(id);
+  } else {
+    console.log('No Flows/Interactions to publish');
+  }
 }
 
 module.exports = {

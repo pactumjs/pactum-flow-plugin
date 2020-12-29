@@ -7,7 +7,7 @@
     "/src"
   ],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "uvu test"
   },
   "repository": {
     "type": "git",
@@ -29,5 +29,10 @@
   "homepage": "https://github.com/pactumjs/pactum-flow-plugin#readme",
   "dependencies": {
     "phin": "^3.5.1"
+  },
+  "devDependencies": {
+    "pactum": "file:../../pactum",
+    "pactum-matchers": "^1.0.0",
+    "uvu": "^0.5.1"
   }
 }

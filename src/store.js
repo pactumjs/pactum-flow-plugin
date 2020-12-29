@@ -2,20 +2,28 @@ const specs = [];
 const interactions = [];
 
 function addSpec(spec) {
-  specs.push(spec);
+  const { flow, request, response } = spec;
+  if (flow) {
+    const _interactions = [];
+    for (let i = 0; i < spec.interactions.length; i++) {
+      const { provider, flow, strict, request, response } = spec.interactions[i];
+      if (provider && flow && strict) {
+        _interactions.push({ provider, flow, strict, request, response });
+      }
+    }
+    specs.push({ name: flow, request, response, interactions: _interactions });
+  }
 }
 
 function getFlows() {
   // update interactions with ids
   const flows = [];
   const flowSet = new Set();
-  const specFlows = specs.filter(spec => spec.flow);
-  specFlows.forEach(spec => {
-    if (flowSet.has(spec.flow)) {
-      // get pactum logger & print duplicate message
+  specs.forEach(spec => {
+    if (flowSet.has(spec.name)) {
+      console.log(`Duplicate Flow - ${spec.name}`);
     } else {
-      spec.name = spec.flow;
-      flowSet.add(spec.flow);
+      flowSet.add(spec.name);
       flows.push(spec);
     }
   });
@@ -23,18 +31,18 @@ function getFlows() {
 }
 
 function addInteraction(interaction) {
-  interactions.push(interaction);
+  const { provider, flow, strict, request, response } = interaction;
+  if (provider && flow && strict) {
+    interactions.push({ provider, flow, strict, request, response });
+  }
 }
 
 function getInteractions() {
   const contracts = [];
   const contractSet = new Set();
-  const _interactions = interactions.filter(interaction => interaction.provider && interaction.flow);
-  _interactions.forEach(interaction => {
+  interactions.forEach(interaction => {
     const key = `${interaction.provider}::${interaction.flow}`;
-    if (contractSet.has(key)) {
-      // get pactum logger & print duplicate message
-    } else {
+    if (!contractSet.has(key)) {
       contractSet.add(key);
       contracts.push(interaction);
     }
@@ -42,9 +50,15 @@ function getInteractions() {
   return contracts;
 }
 
+function reset() {
+  specs.length = 0;
+  interactions.length = 0;
+}
+
 module.exports = {
   addSpec,
   getFlows,
   addInteraction,
-  getInteractions
+  getInteractions,
+  reset
 }

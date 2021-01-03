@@ -24,7 +24,7 @@ async function createProject() {
       }
     });
     if (postResponse.statusCode !== 200) {
-      console.log('Project Creation Failed')
+      console.log(Buffer.from(postResponse.body).toString());
       throw 'Project Creation Failed';
     }
   }
@@ -41,7 +41,7 @@ async function createAnalysis() {
     }
   });
   if (response.statusCode !== 200) {
-    console.log('Analysis Creation Failed')
+    console.log(Buffer.from(response.body).toString());
     throw 'Analysis Creation Failed';
   }
   return JSON.parse(response.body)._id;
@@ -49,14 +49,20 @@ async function createAnalysis() {
 
 async function uploadInteractions(id, interactions) {
   if (interactions.length > 0) {
-    interactions.forEach(interaction => interaction.analysisId = id);
+    interactions.forEach(interaction => {
+      interaction.analysisId = id;
+      // field names cannot contain $ or .  => MongoDB
+      interaction.request.matchingRules = parse(interaction.request.matchingRules);
+      interaction.response.matchingRules = parse(interaction.response.matchingRules);
+      interaction.response.statusCode = interaction.response.status;
+    });
     const response = await phin({
       method: 'POST',
       url: `${config.url}/api/flow/v1/interactions`,
       data: interactions
     });
     if (response.statusCode !== 200) {
-      console.log('Uploading Interactions Failed')
+      console.log(Buffer.from(response.body).toString());
       throw 'Uploading Interactions Failed';
     }
     return JSON.parse(response.body);
@@ -86,7 +92,7 @@ async function uploadFlows(id, flows, interactions) {
       data: flows
     });
     if (response.statusCode !== 200) {
-      console.log('Uploading Flows Failed')
+      console.log(Buffer.from(response.body).toString());
       throw 'Uploading Flows Failed';
     }
   }
@@ -99,7 +105,7 @@ async function process(id) {
     data: { id }
   });
   if (response.statusCode !== 202) {
-    console.log('Process Failed')
+    console.log(Buffer.from(response.body).toString());
     throw 'Process Failed';
   }
 }
@@ -117,6 +123,13 @@ async function publish() {
   } else {
     console.log('No Flows/Interactions to publish');
   }
+}
+
+function parse(data) {
+  if (data && Object.keys(data).length > 0) {
+    return JSON.stringify(data)
+  }
+  return ''
 }
 
 module.exports = {

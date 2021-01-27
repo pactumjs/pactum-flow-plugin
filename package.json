@@ -1,6 +1,6 @@
 {
   "name": "pactum-flow-plugin",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "plugin to publish flows, interactions and run contract tests locally",
   "main": "./src/index.js",
   "files": [
@@ -31,8 +31,7 @@
     "phin": "^3.5.1"
   },
   "devDependencies": {
-    "pactum": "file:../../pactum",
-    "pactum-matchers": "^1.0.0",
+    "pactum": "^3.0.4",
     "uvu": "^0.5.1"
   }
 }

@@ -52,8 +52,8 @@ async function uploadInteractions(id, interactions) {
     interactions.forEach(interaction => {
       interaction.analysisId = id;
       // field names cannot contain $ or .  => MongoDB
-      interaction.request.matchingRules = parse(interaction.request.matchingRules);
-      interaction.response.matchingRules = parse(interaction.response.matchingRules);
+      interaction.request.matchingRules = interaction.request.matchingRules;
+      interaction.response.matchingRules = interaction.response.matchingRules;
       interaction.response.statusCode = interaction.response.status;
     });
     const response = await phin({
@@ -123,13 +123,6 @@ async function publish() {
   } else {
     console.log('No Flows/Interactions to publish');
   }
-}
-
-function parse(data) {
-  if (data && Object.keys(data).length > 0) {
-    return JSON.stringify(data)
-  }
-  return ''
 }
 
 module.exports = {

@@ -7,12 +7,16 @@ function validate() {
   if (!config.projectName) throw '`ProjectName` is required';
   if (!config.version) throw '`Version` is required';
   if (!config.url) throw '`Url` is required';
+  if (!config.token) throw '`Token` is required';
 }
 
 async function createProject() {
   const getResponse = await phin({
     method: 'GET',
-    url: `${config.url}/api/flow/v1/projects/${config.projectId}`
+    url: `${config.url}/api/flow/v1/projects/${config.projectId}`,
+    headers: {
+      'x-auth-token': config.token
+    }
   });
   if (getResponse.statusCode !== 200) {
     const postResponse = await phin({
@@ -21,6 +25,9 @@ async function createProject() {
       data: {
         id: config.projectId,
         name: config.projectName
+      },
+      headers: {
+        'x-auth-token': config.token
       }
     });
     if (postResponse.statusCode !== 200) {
@@ -38,6 +45,9 @@ async function createAnalysis() {
       projectId: config.projectId,
       branch: 'main',
       version: config.version
+    },
+    headers: {
+      'x-auth-token': config.token
     }
   });
   if (response.statusCode !== 200) {
@@ -59,7 +69,10 @@ async function uploadInteractions(id, interactions) {
     const response = await phin({
       method: 'POST',
       url: `${config.url}/api/flow/v1/interactions`,
-      data: interactions
+      data: interactions,
+      headers: {
+        'x-auth-token': config.token
+      }
     });
     if (response.statusCode !== 200) {
       console.log(Buffer.from(response.body).toString());
@@ -89,7 +102,10 @@ async function uploadFlows(id, flows, interactions) {
     const response = await phin({
       method: 'POST',
       url: `${config.url}/api/flow/v1/flows`,
-      data: flows
+      data: flows,
+      headers: {
+        'x-auth-token': config.token
+      }
     });
     if (response.statusCode !== 200) {
       console.log(Buffer.from(response.body).toString());
@@ -102,7 +118,10 @@ async function process(id) {
   const response = await phin({
     method: 'POST',
     url: `${config.url}/api/flow/v1/process/analysis`,
-    data: { id }
+    data: { id },
+    headers: {
+      'x-auth-token': config.token
+    }
   });
   if (response.statusCode !== 202) {
     console.log(Buffer.from(response.body).toString());

@@ -2,5 +2,6 @@ module.exports = {
   projectId: '',
   projectName: '',
   version: '',
-  url: ''
+  url: '',
+  token: ''
 }

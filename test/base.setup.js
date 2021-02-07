@@ -8,4 +8,5 @@ pfr.config.projectId = 'pid';
 pfr.config.projectName = 'pname';
 pfr.config.url = 'http://localhost:9393';
 pfr.config.version = '1.0.0';
+pfr.config.token = 'xyz';
 reporter.add(pfr.reporter);

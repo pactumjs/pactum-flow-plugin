@@ -3,5 +3,6 @@ module.exports = {
   projectName: '',
   version: '',
   url: '',
-  token: ''
+  token: '',
+  batchSize: 10
 }

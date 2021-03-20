@@ -66,19 +66,13 @@ async function uploadInteractions(id, interactions) {
       interaction.response.matchingRules = interaction.response.matchingRules;
       interaction.response.statusCode = interaction.response.status;
     });
-    const response = await phin({
-      method: 'POST',
-      url: `${config.url}/api/flow/v1/interactions`,
-      data: interactions,
-      headers: {
-        'x-auth-token': config.token
-      }
-    });
-    if (response.statusCode !== 200) {
-      console.log(Buffer.from(response.body).toString());
+    const responses = await upload(interactions, `${config.url}/api/flow/v1/interactions`);
+    const invalidResponse = responses.find(response => response.statusCode !== 200);
+    if (invalidResponse) {
+      console.log(Buffer.from(invalidResponse.body).toString());
       throw 'Uploading Interactions Failed';
     }
-    return JSON.parse(response.body);
+    return responses.map(response => JSON.parse(response.body));
   }
   return [];
 }
@@ -99,16 +93,10 @@ async function uploadFlows(id, flows, interactions) {
         flow.interactions = ids;
       }
     });
-    const response = await phin({
-      method: 'POST',
-      url: `${config.url}/api/flow/v1/flows`,
-      data: flows,
-      headers: {
-        'x-auth-token': config.token
-      }
-    });
-    if (response.statusCode !== 200) {
-      console.log(Buffer.from(response.body).toString());
+    const responses = await upload(flows, `${config.url}/api/flow/v1/flows`);
+    const invalidResponse = responses.find(response => response.statusCode !== 200);
+    if (invalidResponse) {
+      console.log(Buffer.from(invalidResponse.body).toString());
       throw 'Uploading Flows Failed';
     }
   }
@@ -142,6 +130,23 @@ async function publish() {
   } else {
     console.log('No Flows/Interactions to publish');
   }
+}
+
+async function upload(items, url) {
+  const promises = [];
+  const size = config.batchSize
+  for (let i = 0; i < items.length; i += size) {
+    const itemsSubset = items.slice(i, i + size);
+    promises.push(phin({
+      method: 'POST',
+      url,
+      data: itemsSubset,
+      headers: {
+        'x-auth-token': config.token
+      }
+    }));
+  }
+  return await Promise.all(promises);
 }
 
 module.exports = {

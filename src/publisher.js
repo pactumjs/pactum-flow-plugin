@@ -133,11 +133,11 @@ async function publish() {
 }
 
 async function upload(items, url) {
-  const promises = [];
-  const size = config.batchSize
+  const size = config.batchSize;
+  const responses = [];
   for (let i = 0; i < items.length; i += size) {
     const itemsSubset = items.slice(i, i + size);
-    promises.push(phin({
+    responses.push(await phin({
       method: 'POST',
       url,
       data: itemsSubset,
@@ -146,7 +146,7 @@ async function upload(items, url) {
       }
     }));
   }
-  return await Promise.all(promises);
+  return responses;
 }
 
 module.exports = {

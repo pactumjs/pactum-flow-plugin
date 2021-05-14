@@ -60,7 +60,8 @@ addInteractionHandler('add interaction', () => {
           },
           "response": {
             "matchingRules": {},
-            "status": 200
+            "status": 200,
+            "statusCode": 200
           },
           "analysisId": "aid"
         }
@@ -138,7 +139,8 @@ addInteractionHandler('add interaction with flow', () => {
           },
           "response": {
             "matchingRules": {},
-            "status": 200
+            "status": 200,
+            "statusCode": 200
           },
           "analysisId": "aid"
         }

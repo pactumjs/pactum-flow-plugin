@@ -72,7 +72,11 @@ async function uploadInteractions(id, interactions) {
       console.log(Buffer.from(invalidResponse.body).toString());
       throw 'Uploading Interactions Failed';
     }
-    return responses.map(response => JSON.parse(response.body));
+    let interactionResponses = [];
+    responses.forEach(response => {
+      interactionResponses = interactionResponses.concat(JSON.parse(response.body));
+    });
+    return interactionResponses;
   }
   return [];
 }
@@ -134,10 +138,10 @@ async function publish() {
 
 async function upload(items, url) {
   const size = config.batchSize;
-  const responses = [];
+  let responses = [];
   for (let i = 0; i < items.length; i += size) {
     const itemsSubset = items.slice(i, i + size);
-    responses.push(await phin({
+    responses = responses.concat(await phin({
       method: 'POST',
       url,
       data: itemsSubset,

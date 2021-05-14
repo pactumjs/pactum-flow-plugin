@@ -16,6 +16,8 @@ before(() => {
   pf.config.projectName = '<unique-project-name>';
   pf.config.version = '<unique-project-version>';
   pf.config.token = '<auth-token>';
+  // no.of flows/interactions to upload at a single instance
+  pf.config.batchSize = 10;  // optional (defaults to 10)
   reporter.add(pf.reporter);
 });
 

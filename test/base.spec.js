@@ -2,7 +2,6 @@ const { reporter, request, mock } = require('pactum');
 
 function addReporter() {
   const pfr = require('../src/index');
-
   pfr.config.projectId = 'pid';
   pfr.config.projectName = 'pname';
   pfr.config.url = 'http://localhost:9393';

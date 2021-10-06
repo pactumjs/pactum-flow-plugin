@@ -1,6 +1,6 @@
 {
   "name": "pactum-flow-plugin",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "plugin to publish flows, interactions and run contract tests locally",
   "main": "./src/index.js",
   "files": [
@@ -28,10 +28,10 @@
   },
   "homepage": "https://github.com/pactumjs/pactum-flow-plugin#readme",
   "dependencies": {
-    "phin": "^3.5.1"
+    "phin": "^3.6.0"
   },
   "devDependencies": {
     "mocha": "^8.4.0",
-    "pactum": "^3.0.14"
+    "pactum": "^3.0.20"
   }
 }

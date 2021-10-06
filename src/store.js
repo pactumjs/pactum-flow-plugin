@@ -1,5 +1,20 @@
+const fs = require('fs');
+const path = require('path');
+const config = require('./config');
+
 const specs = [];
 const interactions = [];
+
+function writeFile(data, type) {
+  const ms = new Date().getTime();
+  const suffix = (Math.random() + 1).toString(36).substring(7);
+  const dir = typeof config.dir === 'string' ? config.dir : `./.pactum/contracts/${type}/${ms}-${suffix}.json`;
+  const folder = path.dirname(dir);
+  if (!fs.existsSync(folder)) {
+    fs.mkdirSync(path.dirname(dir), { recursive: true });
+  }
+  fs.writeFileSync(dir, JSON.stringify(data, null, 2));
+}
 
 function addSpec(spec) {
   const { flow, request, response } = spec;
@@ -11,7 +26,12 @@ function addSpec(spec) {
         _interactions.push({ provider, flow, strict, request, response });
       }
     }
-    specs.push({ name: flow, request, response, interactions: _interactions });
+    const _flow = { name: flow, request, response, interactions: _interactions };
+    if (config.dir) {
+      writeFile(_flow, 'flows');
+    } else {
+      specs.push(_flow);
+    }
   }
 }
 
@@ -33,7 +53,12 @@ function getFlows() {
 function addInteraction(interaction) {
   const { provider, flow, strict, request, response } = interaction;
   if (provider && flow && strict) {
-    interactions.push({ provider, flow, strict, request, response });
+    const _interaction = { provider, flow, strict, request, response };
+    if (config.dir) {
+      writeFile(_interaction, 'interactions');
+    } else { 
+      interactions.push(_interaction);
+    }
   }
 }
 

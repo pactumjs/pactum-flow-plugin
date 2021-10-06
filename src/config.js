@@ -4,5 +4,9 @@ module.exports = {
   version: '',
   url: '',
   token: '',
-  batchSize: 10
+  batchSize: 10,
+  username: '',
+  password: '',
+  publish: true,
+  dir: false
 }

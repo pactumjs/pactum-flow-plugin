@@ -3,6 +3,7 @@ const config = require('./config');
 const store = require('./store');
 
 function validate() {
+  if (!config.publish) return;
   if (!config.projectId) throw '`ProjectId` is required';
   if (!config.projectName) throw '`ProjectName` is required';
   if (!config.version) throw '`Version` is required';
@@ -122,17 +123,19 @@ async function process(id) {
 }
 
 async function publish() {
-  validate();
-  const flows = store.getFlows();
-  const interactions = store.getInteractions();
-  if (flows.length > 0 || interactions.length > 0) {
-    await createProject();
-    const id = await createAnalysis();
-    const _interactions = await uploadInteractions(id, interactions);
-    await uploadFlows(id, flows, _interactions);
-    await process(id);
-  } else {
-    console.log('No Flows/Interactions to publish');
+  if (config.publish) {
+    validate();
+    const flows = store.getFlows();
+    const interactions = store.getInteractions();
+    if (flows.length > 0 || interactions.length > 0) {
+      await createProject();
+      const id = await createAnalysis();
+      const _interactions = await uploadInteractions(id, interactions);
+      await uploadFlows(id, flows, _interactions);
+      await process(id);
+    } else {
+      console.log('No Flows/Interactions to publish');
+    }
   }
 }
 

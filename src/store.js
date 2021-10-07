@@ -5,10 +5,18 @@ const config = require('./config');
 const specs = [];
 const interactions = [];
 
+function getRootDir() {
+  return typeof config.dir === 'string' ? config.dir : `./.pactum/contracts/`;
+}
+
 function writeFile(data, type) {
-  const ms = new Date().getTime();
-  const suffix = (Math.random() + 1).toString(36).substring(7);
-  const dir = typeof config.dir === 'string' ? config.dir : `./.pactum/contracts/${type}/${ms}-${suffix}.json`;
+  const rootDir = getRootDir();
+  let dir;
+  if (type === 'flows') {
+    dir = rootDir + `/flows/${data.name}.json`;
+  } else {
+    dir = rootDir + `/interactions/${data.provider}-${data.flow}.json`;
+  }
   const folder = path.dirname(dir);
   if (!fs.existsSync(folder)) {
     fs.mkdirSync(path.dirname(dir), { recursive: true });
@@ -39,6 +47,13 @@ function getFlows() {
   // update interactions with ids
   const flows = [];
   const flowSet = new Set();
+  const dir = getRootDir() + '/flows/';
+  if (fs.existsSync(dir)) {
+    const files = fs.readdirSync(dir);
+    for(let i = 0; i < files.length; i++) {
+      specs.push(require(process.cwd() + `/${dir}/${files[i]}`));
+    }
+  }
   specs.forEach(spec => {
     if (flowSet.has(spec.name)) {
       console.log(`Duplicate Flow - ${spec.name}`);
@@ -65,6 +80,13 @@ function addInteraction(interaction) {
 function getInteractions() {
   const contracts = [];
   const contractSet = new Set();
+  const dir = getRootDir() + '/interactions/';
+  if (fs.existsSync(dir)) {
+    const files = fs.readdirSync(dir);
+    for(let i = 0; i < files.length; i++) {
+      interactions.push(require(process.cwd() + `/${dir}/${files[i]}`));
+    }
+  }
   interactions.forEach(interaction => {
     const key = `${interaction.provider}::${interaction.flow}`;
     if (!contractSet.has(key)) {

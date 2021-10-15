@@ -7,6 +7,10 @@ interface Config {
   url?: string;
   token?: string;
   batchSize?: number;
+  username?: string;
+  password?: string;
+  publish?: boolean;
+  dir?: boolean | string;
 }
 
 /**

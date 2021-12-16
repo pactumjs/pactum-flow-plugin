@@ -12,6 +12,7 @@ function addReporter() {
 
 function loadMocks() {
   require('./mocks/flow.mock');
+  require('./mocks/captain.mock');
 }
 
 before(async () => {

@@ -33,6 +33,6 @@
   },
   "devDependencies": {
     "mocha": "^8.4.0",
-    "pactum": "^3.0.20"
+    "pactum": "^3.1.0"
   }
 }

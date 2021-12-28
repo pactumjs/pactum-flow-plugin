@@ -30,14 +30,21 @@ after(async () => {
 
 ### Options
 
-| option        | type    | description                   | others                            |
-|---------------|---------|-------------------------------|-----------------------------------|
-| `url`         | string  | pactum flow server url        | required (*if publish is `true`*) |
-| `projectId`   | string  | unique project id             | required (*if publish is `true`*) |
-| `projectName` | string  | unique project name           | required (*if publish is `true`*) |
-| `version`     | string  | unique project version        | required (*if publish is `true`*) |
-| `token`       | string  | auth token                    | required (*if publish is `true`*) |
-| `batchSize`   | number  | pactum flow server url        | defaults to `10`                  |
-| `publish`     | boolean | enable publishing contracts   | defaults to `true`                |
-| `dir`         | boolean | save contracts in fs          | defaults to `false`               |
-| `dir`         | string  | save contracts in custom path | defaults to `.pactum/contracts/`  |
+| option                         | type    | description                                   | others                            |
+|--------------------------------|---------|-----------------------------------------------|-----------------------------------|
+| `url`                          | string  | pactum flow server url                        | required (*if publish is `true`*) |
+| `projectId`                    | string  | unique project id                             | required (*if publish is `true`*) |
+| `projectName`                  | string  | unique project name                           | required (*if publish is `true`*) |
+| `version`                      | string  | unique project version                        | required (*if publish is `true`*) |
+| `token`                        | string  | auth token                                    | required (*if publish is `true`*) |
+| `username`                     | string  | scanner username                              | required (*if token is `empty`*)  |
+| `password`                     | string  | scanner password                              | required (*if token is `empty`*)  |
+| `batchSize`                    | number  | pactum flow server url                        | defaults to `10`                  |
+| `publish`                      | boolean | enable publishing contracts                   | defaults to `true`                |
+| `dir`                          | boolean | save contracts in fs                          | defaults to `false`               |
+| `dir`                          | string  | save contracts in custom path                 | defaults to `.pactum/contracts/`  |
+| `checkQualityGate`             | boolean | check quality gate                            | defaults to `false`               |
+| `checkQualityGateTimeout`      | number  | check quality gate timeout                    | defaults to `10000`ms             |
+| `checkQualityGateEnvironments` | string  | check quality gate against the given envs     | defaults to all envs              |
+| `checkQualityGateDefaultDelay` | number  | default delay to wait for processing analysis | defaults to `2000`ms              |
+

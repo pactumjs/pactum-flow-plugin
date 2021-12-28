@@ -1,0 +1,14 @@
+export let projectId: string;
+export let projectName: string;
+export let version: string;
+export let url: string;
+export let token: string;
+export let batchSize: number;
+export let username: string;
+export let password: string;
+export let publish: boolean;
+export let dir: boolean | string;
+export let checkQualityGate: boolean;
+export let checkQualityGateDefaultDelay: number;
+export let checkQualityGateTimeout: number;
+export let checkQualityGateEnvironments: string | string[];

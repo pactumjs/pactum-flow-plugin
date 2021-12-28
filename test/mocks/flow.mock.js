@@ -214,3 +214,215 @@ addInteractionHandler('run process', () => {
     }
   }
 });
+
+addInteractionHandler('get completed job', () => {
+  return {
+    id: 'get completed job',
+    provider: 'pactum_flow-api',
+    request: {
+      method: 'GET',
+      path: '/api/flow/v1/jobs/aid',
+    },
+    response: {
+      status: 200,
+      body: {
+        status: 'completed'
+      }
+    }
+  }
+});
+
+addInteractionHandler('get running job', () => {
+  return {
+    id: 'get running job',
+    provider: 'pactum_flow-api',
+    request: {
+      method: 'GET',
+      path: '/api/flow/v1/jobs/aid',
+    },
+    response: {
+      status: 200,
+      body: {
+        status: 'running'
+      }
+    }
+  }
+});
+
+addInteractionHandler('get failed job', () => {
+  return {
+    id: 'get failed job',
+    provider: 'pactum_flow-api',
+    request: {
+      method: 'GET',
+      path: '/api/flow/v1/jobs/aid',
+    },
+    response: {
+      onCall: {
+        0: {
+          status: 200,
+          body: {
+            status: 'running'
+          }
+        }, 
+        1: {
+          status: 200,
+          body: {
+            status: 'failed'
+          }
+        }
+      }
+    }
+  }
+});
+
+addInteractionHandler('get quality gate status as OK', () => {
+  return {
+    id: 'get quality gate status as OK',
+    provider: 'pactum_flow-api',
+    request: {
+      method: 'GET',
+      path: '/api/flow/v1/quality-gate/status',
+      queryParams: {
+        "projectId": "pid",
+        "version": "1.0.0"
+      }
+    },
+    response: {
+      status: 200,
+      body: [
+        {
+          consumers: [],
+          environment: 'latest',
+          providers: [],
+          status: 'OK'
+        }
+      ]
+    }
+  }
+});
+
+addInteractionHandler('get quality gate status as ERROR', () => {
+  return {
+    id: 'get quality gate status as ERROR',
+    provider: 'pactum_flow-api',
+    request: {
+      method: 'GET',
+      path: '/api/flow/v1/quality-gate/status',
+      queryParams: {
+        "projectId": "pid",
+        "version": "1.0.0"
+      }
+    },
+    response: {
+      status: 200,
+      body: [
+        {
+          consumers: [],
+          environment: 'latest',
+          providers: [
+            {
+              "exceptions": [],
+              "message": "Project Not Found",
+              "name": "unknown-project",
+              "status": "ERROR",
+              "version": ""
+            }
+          ],
+          status: 'ERROR'
+        }
+      ]
+    }
+  }
+});
+
+addInteractionHandler('get quality gate status as ERROR with exceptions', () => {
+  return {
+    id: 'get quality gate status as ERROR with exceptions',
+    provider: 'pactum_flow-api',
+    request: {
+      method: 'GET',
+      path: '/api/flow/v1/quality-gate/status',
+      queryParams: {
+        "projectId": "pid",
+        "version": "1.0.0"
+      }
+    },
+    response: {
+      status: 200,
+      body: [
+        {
+          consumers: [
+            {
+              "exceptions": [
+                {
+                  "flow": "p-id-1-f-name-na",
+                  "error": "Flow Not Found"
+                }
+              ],
+              "message": "",
+              "name": "known-project",
+              "status": "FAILED",
+              "version": "known-version"
+            },
+            {
+              "exceptions": [
+                {
+                  "flow": "p-id-1-f-name-na",
+                  "error": "Flow Not Found"
+                }
+              ],
+              "message": "",
+              "name": "known-project-2",
+              "status": "FAILED",
+              "version": "known-version"
+            }
+          ],
+          environment: 'latest',
+          providers: [
+            {
+              "exceptions": [],
+              "message": "",
+              "name": "known-project",
+              "status": "PASSED",
+              "version": "known-version"
+            }
+          ],
+          status: 'ERROR'
+        }
+      ]
+    }
+  }
+});
+
+addInteractionHandler('get quality gate status as OK for test env', () => {
+  return {
+    id: 'get quality gate status as OK for test env',
+    provider: 'pactum_flow-api',
+    request: {
+      method: 'GET',
+      path: '/api/flow/v1/quality-gate/status',
+      queryParams: {
+        "projectId": "pid",
+        "version": "1.0.0"
+      }
+    },
+    response: {
+      status: 200,
+      body: [
+        {
+          consumers: [],
+          environment: 'latest',
+          providers: [],
+          status: 'ERROR'
+        },
+        {
+          consumers: [],
+          environment: 'test',
+          providers: [],
+          status: 'OK'
+        }
+      ]
+    }
+  }
+});

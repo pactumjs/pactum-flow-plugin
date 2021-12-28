@@ -359,3 +359,297 @@ describe('Publish - Using Session Token', () => {
   });
 
 });
+
+describe.only('Publish & Check Quality Gate', () => {
+
+  before(() => {
+    const pfr = require('../src/index');
+    pfr.config.username = 'scanner';
+    pfr.config.password = 'scanner';
+    pfr.config.checkQualityGate = true;
+    pfr.config.checkQualityGateDefaultDelay = 1;
+    pfr.config.checkQualityGateTimeout = 2000;
+  });
+
+  after(() => {
+    const pfr = require('../src/index');
+    pfr.config.username = '';
+    pfr.config.password = '';
+    pfr.config.checkQualityGate = false;
+  });
+
+  describe('Reporter - Quality Gate Status OK', () => {
+
+    before(() => {
+      mock.addInteraction('create a session');
+      mock.addInteraction('get project');
+      mock.addInteraction('create analysis');
+      mock.addInteraction('add interaction');
+      mock.addInteraction('run process');
+      mock.addInteraction('get completed job');
+      mock.addInteraction('get quality gate status as OK');
+    });
+
+    it('running a normal spec with valid interaction should contact with flow server', async () => {
+      await pactum.spec()
+        .get('/api/get')
+        .useInteraction({
+          provider: 'provider1',
+          flow: 'flow1',
+          request: {
+            method: 'GET',
+            path: '/api/get'
+          },
+          response: {
+            status: 200
+          }
+        })
+        .expectStatus(200);
+      await reporter.end();
+      assert.strictEqual(mock.getInteraction('get project').exercised, true);
+      assert.strictEqual(mock.getInteraction('create analysis').exercised, true);
+      assert.strictEqual(mock.getInteraction('add interaction').exercised, true);
+      assert.strictEqual(mock.getInteraction('run process').exercised, true);
+      assert.strictEqual(mock.getInteraction('get completed job').exercised, true);
+      assert.strictEqual(mock.getInteraction('get quality gate status as OK').exercised, true);
+    });
+
+    after(() => {
+      mock.clearInteractions();
+      reset();
+    });
+
+  });
+
+  describe('Reporter - Quality Gate Status ERROR', () => {
+
+    before(() => {
+      mock.addInteraction('create a session');
+      mock.addInteraction('get project');
+      mock.addInteraction('create analysis');
+      mock.addInteraction('add interaction');
+      mock.addInteraction('run process');
+      mock.addInteraction('get completed job');
+      mock.addInteraction('get quality gate status as ERROR');
+    });
+
+    it('running a normal spec with valid interaction should contact with flow server', async () => {
+      await pactum.spec()
+        .get('/api/get')
+        .useInteraction({
+          provider: 'provider1',
+          flow: 'flow1',
+          request: {
+            method: 'GET',
+            path: '/api/get'
+          },
+          response: {
+            status: 200
+          }
+        })
+        .expectStatus(200);
+      try {
+        await reporter.end();
+      } catch (error) {
+
+      }
+      assert.strictEqual(mock.getInteraction('get project').exercised, true);
+      assert.strictEqual(mock.getInteraction('create analysis').exercised, true);
+      assert.strictEqual(mock.getInteraction('add interaction').exercised, true);
+      assert.strictEqual(mock.getInteraction('run process').exercised, true);
+      assert.strictEqual(mock.getInteraction('get completed job').exercised, true);
+      assert.strictEqual(mock.getInteraction('get quality gate status as ERROR').exercised, true);
+    });
+
+    after(() => {
+      mock.clearInteractions();
+      reset();
+    });
+
+  });
+
+  describe('Reporter - Quality Gate Status ERROR with exceptions', () => {
+
+    before(() => {
+      mock.addInteraction('create a session');
+      mock.addInteraction('get project');
+      mock.addInteraction('create analysis');
+      mock.addInteraction('add interaction');
+      mock.addInteraction('run process');
+      mock.addInteraction('get completed job');
+      mock.addInteraction('get quality gate status as ERROR with exceptions');
+    });
+
+    it('running a normal spec with valid interaction should contact with flow server', async () => {
+      await pactum.spec()
+        .get('/api/get')
+        .useInteraction({
+          provider: 'provider1',
+          flow: 'flow1',
+          request: {
+            method: 'GET',
+            path: '/api/get'
+          },
+          response: {
+            status: 200
+          }
+        })
+        .expectStatus(200);
+      try {
+        await reporter.end();
+      } catch (error) {
+
+      }
+      assert.strictEqual(mock.getInteraction('get project').exercised, true);
+      assert.strictEqual(mock.getInteraction('create analysis').exercised, true);
+      assert.strictEqual(mock.getInteraction('add interaction').exercised, true);
+      assert.strictEqual(mock.getInteraction('run process').exercised, true);
+      assert.strictEqual(mock.getInteraction('get completed job').exercised, true);
+      assert.strictEqual(mock.getInteraction('get quality gate status as ERROR with exceptions').exercised, true);
+    });
+
+    after(() => {
+      mock.clearInteractions();
+      reset();
+    });
+
+  });
+
+  describe('Reporter - Job Still Running', () => {
+
+    before(() => {
+      mock.addInteraction('create a session');
+      mock.addInteraction('get project');
+      mock.addInteraction('create analysis');
+      mock.addInteraction('add interaction');
+      mock.addInteraction('run process');
+      mock.addInteraction('get running job');
+    });
+
+    it('running a normal spec with valid interaction should contact with flow server', async () => {
+      await pactum.spec()
+        .get('/api/get')
+        .useInteraction({
+          provider: 'provider1',
+          flow: 'flow1',
+          request: {
+            method: 'GET',
+            path: '/api/get'
+          },
+          response: {
+            status: 200
+          }
+        })
+        .expectStatus(200);
+      try {
+        await reporter.end();
+      } catch (error) {
+
+      }
+      assert.strictEqual(mock.getInteraction('get project').exercised, true);
+      assert.strictEqual(mock.getInteraction('create analysis').exercised, true);
+      assert.strictEqual(mock.getInteraction('add interaction').exercised, true);
+      assert.strictEqual(mock.getInteraction('run process').exercised, true);
+      assert.strictEqual(mock.getInteraction('get running job').exercised, true);
+    }).timeout(4000);
+
+    after(() => {
+      mock.clearInteractions();
+      reset();
+    });
+
+  });
+
+  describe('Reporter - Job failed', () => {
+
+    before(() => {
+      mock.addInteraction('create a session');
+      mock.addInteraction('get project');
+      mock.addInteraction('create analysis');
+      mock.addInteraction('add interaction');
+      mock.addInteraction('run process');
+      mock.addInteraction('get failed job');
+    });
+
+    it('running a normal spec with valid interaction should contact with flow server', async () => {
+      await pactum.spec()
+        .get('/api/get')
+        .useInteraction({
+          provider: 'provider1',
+          flow: 'flow1',
+          request: {
+            method: 'GET',
+            path: '/api/get'
+          },
+          response: {
+            status: 200
+          }
+        })
+        .expectStatus(200);
+      try {
+        await reporter.end();
+      } catch (error) {
+
+      }
+      assert.strictEqual(mock.getInteraction('get project').exercised, true);
+      assert.strictEqual(mock.getInteraction('create analysis').exercised, true);
+      assert.strictEqual(mock.getInteraction('add interaction').exercised, true);
+      assert.strictEqual(mock.getInteraction('run process').exercised, true);
+      assert.strictEqual(mock.getInteraction('get failed job').exercised, true);
+    }).timeout(4000);
+
+    after(() => {
+      mock.clearInteractions();
+      reset();
+    });
+
+  });
+
+  describe('Reporter - Quality Gate Status OK with one env', () => {
+
+    before(() => {
+      mock.addInteraction('create a session');
+      mock.addInteraction('get project');
+      mock.addInteraction('create analysis');
+      mock.addInteraction('add interaction');
+      mock.addInteraction('run process');
+      mock.addInteraction('get completed job');
+      mock.addInteraction('get quality gate status as OK for test env');
+      const pfr = require('../src/index');
+      pfr.config.checkQualityGateEnvironments = 'test';
+    });
+
+    it('running a normal spec with valid interaction should contact with flow server', async () => {
+      await pactum.spec()
+        .get('/api/get')
+        .useInteraction({
+          provider: 'provider1',
+          flow: 'flow1',
+          request: {
+            method: 'GET',
+            path: '/api/get'
+          },
+          response: {
+            status: 200
+          }
+        })
+        .expectStatus(200);
+      await reporter.end();
+      assert.strictEqual(mock.getInteraction('get project').exercised, true);
+      assert.strictEqual(mock.getInteraction('create analysis').exercised, true);
+      assert.strictEqual(mock.getInteraction('add interaction').exercised, true);
+      assert.strictEqual(mock.getInteraction('run process').exercised, true);
+      assert.strictEqual(mock.getInteraction('get completed job').exercised, true);
+      assert.strictEqual(mock.getInteraction('get quality gate status as OK for test env').exercised, true);
+    });
+
+    after(() => {
+      const pfr = require('../src/index');
+      pfr.config.checkQualityGateEnvironments = '';
+      mock.clearInteractions();
+      reset();
+    });
+
+  });
+
+});

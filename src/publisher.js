@@ -1,90 +1,44 @@
 const phin = require('phin');
+const request = require('phin-retry');
 const config = require('./config');
 const store = require('./store');
-
-let session_token = '';
-
-function validate() {
-  if (!config.publish) return;
-  if (!config.projectId) throw '`projectId` is required';
-  if (!config.projectName) throw '`projectName` is required';
-  if (!config.version) throw '`version` is required';
-  if (!config.url) throw '`url` is required';
-  if (config.username) {
-    if (!config.password) throw '`password` is required';
-  } else {
-    if (!config.token) throw '`token` is required';
-  }
-}
-
-async function setSessionToken() {
-  if (config.username) {
-    const res = await phin({
-      method: 'POST',
-      url: `${config.url}/api/flow/captain/v1/session`,
-      core: {
-        auth: `${config.username}:${config.password}`
-      },
-      parse: 'json'
-    });
-    if (res.statusCode !== 200) {
-      console.log(res.body);
-      throw 'Failed to authenticate with flows server';
-    }
-    session_token = res.body.token;
-  }
-}
-
-function getHeaders() {
-  if (session_token) {
-    return { 'x-session-token': session_token };
-  } else {
-    return { 'x-auth-token': config.token };
-  }
-}
+const { getHeaders } = require('./helper');
 
 async function createProject() {
-  const getResponse = await phin({
-    method: 'GET',
-    url: `${config.url}/api/flow/v1/projects/${config.projectId}`,
-    headers: getHeaders()
-  });
-  if (getResponse.statusCode !== 200) {
-    const postResponse = await phin({
-      method: 'POST',
+  console.log("Creating Project");
+  try {
+    await request.get({
+      url: `${config.url}/api/flow/v1/projects/${config.projectId}`,
+      headers: getHeaders()
+    });
+  } catch (error) {
+    await request.post({
       url: `${config.url}/api/flow/v1/projects`,
-      data: {
+      body: {
         id: config.projectId,
         name: config.projectName
       },
       headers: getHeaders()
     });
-    if (postResponse.statusCode !== 200) {
-      console.log(Buffer.from(postResponse.body).toString());
-      throw 'Project Creation Failed';
-    }
   }
 }
 
 async function createAnalysis() {
-  const response = await phin({
-    method: 'POST',
+  console.log("Creating Analysis");
+  const res = await request.post({
     url: `${config.url}/api/flow/v1/analyses`,
-    data: {
+    body: {
       projectId: config.projectId,
       branch: 'main',
       version: config.version
     },
     headers: getHeaders()
   });
-  if (response.statusCode !== 200) {
-    console.log(Buffer.from(response.body).toString());
-    throw 'Analysis Creation Failed';
-  }
-  return JSON.parse(response.body)._id;
+  return res._id;
 }
 
 async function uploadInteractions(id, interactions) {
+  console.log("Uploading Interactions");
   if (interactions.length > 0) {
     interactions.forEach(interaction => {
       interaction.analysisId = id;
@@ -109,6 +63,7 @@ async function uploadInteractions(id, interactions) {
 }
 
 async function uploadFlows(id, flows, interactions) {
+  console.log("Uploading Flows");
   if (flows.length > 0) {
     flows.forEach(flow => {
       flow.analysisId = id
@@ -134,33 +89,38 @@ async function uploadFlows(id, flows, interactions) {
 }
 
 async function process(id) {
-  const response = await phin({
-    method: 'POST',
+  console.log("Processing Analysis");
+  await request.post({
     url: `${config.url}/api/flow/v1/process/analysis`,
-    data: { id },
+    body: { id },
     headers: getHeaders()
   });
-  if (response.statusCode !== 202) {
-    console.log(Buffer.from(response.body).toString());
-    throw 'Process Failed';
-  }
+}
+
+function print() {
+  console.log();
+  console.log("***************************************************************************");
+  console.log(`*  Publishing "${config.projectId}" with version "${config.version}"`);
+  console.log("***************************************************************************");
+  console.log();
 }
 
 async function publish() {
-  if (config.publish) {
-    validate();
-    await setSessionToken();
-    const flows = store.getFlows();
-    const interactions = store.getInteractions();
-    if (flows.length > 0 || interactions.length > 0) {
-      await createProject();
-      const id = await createAnalysis();
-      const _interactions = await uploadInteractions(id, interactions);
-      await uploadFlows(id, flows, _interactions);
-      await process(id);
-    } else {
-      console.log('No Flows/Interactions to publish');
-    }
+  if (!config.publish) {
+    return;
+  }
+  print();
+  const flows = store.getFlows();
+  const interactions = store.getInteractions();
+  if (flows.length > 0 || interactions.length > 0) {
+    await createProject();
+    const id = await createAnalysis();
+    config._analysis_id = id;
+    const _interactions = await uploadInteractions(id, interactions);
+    await uploadFlows(id, flows, _interactions);
+    await process(id);
+  } else {
+    console.log('No Flows/Interactions to publish');
   }
 }
 

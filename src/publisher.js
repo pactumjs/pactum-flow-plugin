@@ -1,3 +1,4 @@
+const { bold } = require('kleur');
 const phin = require('phin');
 const request = require('phin-retry');
 const config = require('./config');
@@ -99,9 +100,7 @@ async function process(id) {
 
 function print() {
   console.log();
-  console.log("***************************************************************************");
-  console.log(`*  Publishing "${config.projectId}" with version "${config.version}"`);
-  console.log("***************************************************************************");
+  console.log(bold().underline().cyan(`Publishing "${config.projectId}" with version "${config.version}"`));
   console.log();
 }
 

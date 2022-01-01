@@ -1,6 +1,8 @@
+const { bold, red, green, magenta } = require('kleur');
 const request = require('phin-retry');
 const config = require('./config');
 const { getHeaders, sleep } = require('./helper');
+const store = require('./store');
 
 async function waitForJobToFinish() {
   console.log("Waiting for analysis to process")
@@ -54,9 +56,10 @@ function check(results) {
     const result = results[i];
     if (envs.has(result.environment)) {
       console.log();
-      console.log(`== Quality Gate Status in environment "${result.environment}" is "${result.status}" ==`);
-      console.log();
-      if (result.status !== 'OK') {
+      if (result.status === 'OK')  {
+        console.log(green(`Quality Gate Status in environment "${result.environment}" is "${result.status}"`));
+      } else {
+        console.log(red(`Quality Gate Status in environment "${result.environment}" is "${result.status}"`));
         printFailures(result);
         allPassed = false;
       }
@@ -65,7 +68,7 @@ function check(results) {
   if (!allPassed) {
     throw 'Quality Gate Status Failed';
   }
-  
+
 }
 
 function printFailures(result) {
@@ -79,7 +82,7 @@ function printNetworkFailure(projects, category) {
   });
   if (areProjectsFailed) {
     console.log();
-    console.log(`*** ${category.toUpperCase()} FAILURES ***`);
+    console.log(magenta(`${category.toUpperCase()} FAILURES`));
     console.log();
     for (let i = 0; i < projects.length; i++) {
       const project = projects[i];
@@ -94,21 +97,65 @@ function printNetworkFailure(projects, category) {
   }
 }
 
+function print() {
+  console.log();
+  console.log(bold().underline().cyan(`Checking Quality Gate of "${config.projectId}"`));
+  console.log();
+}
+
+function getEnvironments() {
+  let envs = config.checkQualityGateEnvironments;
+  if (typeof config.checkQualityGateEnvironments === 'string') {
+    if (config.checkQualityGateEnvironments) {
+      envs = config.checkQualityGateEnvironments.split(',');
+    } else {
+      envs = [];
+    }
+  }
+  return envs;
+}
+
+function verifyCompatibility() {
+  const interactions = store.getInteractions();
+  interactions.forEach(_interaction => {
+    _interaction.response.statusCode = _interaction.response.status;
+  });
+  return request.post({
+    url: `${config.url}/api/flow/v1/compatibility/project/verify`,
+    headers: getHeaders(),
+    body: {
+      "projectId": config.projectId,
+      "environments": getEnvironments(),
+      "interactions": interactions,
+      "flows": store.getFlows()
+    }
+  });
+}
+
+function verifyQualityGateStatus(results) {
+  return request.post({
+    url: `${config.url}/api/flow/v1/quality-gate/status/verify`,
+    headers: getHeaders(),
+    body: {
+      "projectId": config.projectId,
+      "environments": getEnvironments(),
+      "compatibility_results": results
+    }
+  });
+}
+
 async function checkQualityGate() {
   if (!config.checkQualityGate) {
     return;
   }
   print();
-  await waitForJobToFinish();
-  check(await getQualityGateStatus());
-}
-
-function print() {
-  console.log();
-  console.log("***************************************************************************");
-  console.log(`*  Checking Quality Gate of "${config.projectId}" with version "${config.version}"`);
-  console.log("***************************************************************************");
-  console.log();
+  if (config.checkQualityGateLocal) {
+    const results = await verifyCompatibility();
+    check(await verifyQualityGateStatus(results));
+  } else {
+    await waitForJobToFinish();
+    check(await getQualityGateStatus());
+  }
 }
 
 module.exports = { checkQualityGate };

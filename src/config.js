@@ -10,8 +10,9 @@ module.exports = {
   publish: true,
   dir: false,
   checkQualityGate: false,
-  checkQualityGateDefaultDelay: 2000,
+  checkQualityGateLocal: false,
   checkQualityGateTimeout: 10000,
+  checkQualityGateDefaultDelay: 2000,
   checkQualityGateEnvironments: '',
   _session_token: '',
   _analysis_id: ''

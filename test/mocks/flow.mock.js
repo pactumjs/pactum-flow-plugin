@@ -426,3 +426,86 @@ addInteractionHandler('get quality gate status as OK for test env', () => {
     }
   }
 });
+
+addInteractionHandler('verify compatibility with interactions', () => {
+  return {
+    id: 'verify compatibility with interactions',
+    provider: 'pactum_flow-api',
+    request: {
+      method: 'POST',
+      path: '/api/flow/v1/compatibility/project/verify',
+      body: {
+        "projectId": "pid",
+        "environments": [],
+        "interactions": [
+          {
+            "provider": "provider1",
+            "flow": "flow1",
+            "strict": true,
+            "request": {
+              "matchingRules": {},
+              "method": "GET",
+              "path": "/api/get",
+              "queryParams": {}
+            },
+            "response": {
+              "matchingRules": {},
+              "status": 200,
+              "statusCode": 200
+            }
+          }
+        ],
+        "flows": []
+      }
+    },
+    response: {
+      status: 200,
+      body: [
+        {
+          "consumer": "p-id-2",
+          "consumerVersion": "2.0.1",
+          "provider": "p-id-1",
+          "providerVersion": "1.0.1",
+          "status": "PASSED",
+          "exceptions": []
+        }
+      ]
+    }
+  }
+});
+
+addInteractionHandler('verify quality gate status', () => {
+  return {
+    id: 'verify quality gate status',
+    provider: 'pactum_flow-api',
+    request: {
+      method: 'POST',
+      path: '/api/flow/v1/quality-gate/status/verify',
+      body: {
+        "projectId": "pid",
+        "environments": [],
+        "compatibility_results": [
+          {
+            "consumer": "p-id-2",
+            "consumerVersion": "2.0.1",
+            "provider": "p-id-1",
+            "providerVersion": "1.0.1",
+            "status": "PASSED",
+            "exceptions": []
+          }
+        ]
+      }
+    },
+    response: {
+      status: 200,
+      body: [
+        {
+          consumers: [],
+          environment: 'latest',
+          providers: [],
+          status: 'OK'
+        }
+      ]
+    }
+  }
+});

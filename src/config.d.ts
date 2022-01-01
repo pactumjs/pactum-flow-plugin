@@ -9,6 +9,7 @@ export let password: string;
 export let publish: boolean;
 export let dir: boolean | string;
 export let checkQualityGate: boolean;
-export let checkQualityGateDefaultDelay: number;
+export let checkQualityGateLocal: boolean;
 export let checkQualityGateTimeout: number;
+export let checkQualityGateDefaultDelay: number;
 export let checkQualityGateEnvironments: string | string[];

@@ -360,7 +360,7 @@ describe('Publish - Using Session Token', () => {
 
 });
 
-describe.only('Publish & Check Quality Gate', () => {
+describe('Publish & Check Quality Gate', () => {
 
   before(() => {
     const pfr = require('../src/index');
@@ -646,6 +646,65 @@ describe.only('Publish & Check Quality Gate', () => {
     after(() => {
       const pfr = require('../src/index');
       pfr.config.checkQualityGateEnvironments = '';
+      mock.clearInteractions();
+      reset();
+    });
+
+  });
+
+});
+
+describe('Check Quality Gate Locally', () => {
+
+  before(() => {
+    const pfr = require('../src/index');
+    pfr.config.username = 'scanner';
+    pfr.config.password = 'scanner';
+    pfr.config.checkQualityGate = true;
+    pfr.config.checkQualityGateDefaultDelay = 1;
+    pfr.config.checkQualityGateTimeout = 2000;
+    pfr.config.checkQualityGateLocal = true;
+    pfr.config.publish = false;
+  });
+
+  after(() => {
+    const pfr = require('../src/index');
+    pfr.config.username = '';
+    pfr.config.password = '';
+    pfr.config.checkQualityGate = false;
+    pfr.config.checkQualityGateLocal = false;
+    pfr.config.publish = true;
+  });
+
+  describe('Reporter - Quality Gate Status OK', () => {
+
+    before(() => {
+      mock.addInteraction('create a session');
+      mock.addInteraction('verify compatibility with interactions');
+      mock.addInteraction('verify quality gate status');
+    });
+
+    it('running a normal spec with valid interaction should contact with flow server', async () => {
+      await pactum.spec()
+        .get('/api/get')
+        .useInteraction({
+          provider: 'provider1',
+          flow: 'flow1',
+          request: {
+            method: 'GET',
+            path: '/api/get'
+          },
+          response: {
+            status: 200
+          }
+        })
+        .expectStatus(200);
+      await reporter.end();
+      assert.strictEqual(mock.getInteraction('verify compatibility with interactions').exercised, true);
+      assert.strictEqual(mock.getInteraction('verify quality gate status').exercised, true);
+    });
+
+    after(() => {
       mock.clearInteractions();
       reset();
     });

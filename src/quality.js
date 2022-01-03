@@ -118,7 +118,13 @@ function getEnvironments() {
 function verifyCompatibility() {
   const interactions = store.getInteractions();
   interactions.forEach(_interaction => {
+    _interaction.analysisId = "abcdefghijklmnopqrstuvwx";
     _interaction.response.statusCode = _interaction.response.status;
+  });
+
+  const flows = store.getFlows();
+  flows.forEach(_flow => {
+    _flow.analysisId = "abcdefghijklmnopqrstuvwx";
   });
   return request.post({
     url: `${config.url}/api/flow/v1/compatibility/project/verify`,
@@ -127,7 +133,7 @@ function verifyCompatibility() {
       "projectId": config.projectId,
       "environments": getEnvironments(),
       "interactions": interactions,
-      "flows": store.getFlows()
+      "flows": flows
     }
   });
 }

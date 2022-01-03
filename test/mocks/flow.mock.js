@@ -439,6 +439,7 @@ addInteractionHandler('verify compatibility with interactions', () => {
         "environments": [],
         "interactions": [
           {
+            "analysisId": "abcdefghijklmnopqrstuvwx",
             "provider": "provider1",
             "flow": "flow1",
             "strict": true,

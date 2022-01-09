@@ -1,4 +1,4 @@
-const { bold, red, green, magenta } = require('kleur');
+const { bold, red, green, magenta, gray, yellow } = require('kleur');
 const request = require('phin-retry');
 const config = require('./config');
 const { getHeaders, sleep } = require('./helper');
@@ -56,43 +56,42 @@ function check(results) {
     const result = results[i];
     if (envs.has(result.environment)) {
       console.log();
-      if (result.status === 'OK')  {
-        console.log(green(`Quality Gate Status in environment "${result.environment}" is "${result.status}"`));
-      } else {
-        console.log(red(`Quality Gate Status in environment "${result.environment}" is "${result.status}"`));
-        printFailures(result);
+      console.log(`Quality Gate Status in environment "${result.environment}" is "${result.status}"`);
+      if (result.status !== 'OK')  {
         allPassed = false;
       }
+      printCompatibilityResults(result.consumers, 'Consumer');
+      printCompatibilityResults(result.providers, 'Provider')
     }
   }
   if (!allPassed) {
     throw 'Quality Gate Status Failed';
   }
-
 }
 
-function printFailures(result) {
-  printNetworkFailure(result.consumers, 'consumers');
-  printNetworkFailure(result.providers, 'providers');
-}
-
-function printNetworkFailure(projects, category) {
-  const areProjectsFailed = projects.some((project) => {
-    return project.status === 'FAILED' || project.status === 'ERROR';
-  });
-  if (areProjectsFailed) {
-    console.log();
-    console.log(magenta(`${category.toUpperCase()} FAILURES`));
-    console.log();
-    for (let i = 0; i < projects.length; i++) {
-      const project = projects[i];
-      if (project.status === 'FAILED' || project.status === 'ERROR') {
-        console.table({ name: project.name, version: project.version, status: project.status, message: project.message });
-        if (project.status === 'FAILED') {
-          console.table(project.exceptions);
+function printCompatibilityResults(results, result_type) {
+  const space = '  ';
+  console.log(gray(`${result_type} Results`));
+  if (results.length === 0) {
+    console.log(space + yellow('!') + ` No ${result_type} Results Found`);
+  }
+  for(let i = 0; i < results.length; i++) {
+    const result = results[i];
+    if (result.status === 'FAILED' || result.status === 'ERROR') {
+      console.log(space + red('X') + ` ${result.name} ${result.version}`);
+      const more_space = space + space;
+      if (result.status === 'ERROR') {
+        console.log(more_space + result.message);
+      } else {
+        const exceptions = result.exceptions;
+        for(let j = 0; j < exceptions.length; j++) {
+          const exception = exceptions[j];
+          console.log(more_space + exception.flow);
+          console.log(more_space + magenta('↪ ') + exception.error);
         }
-        console.log();
       }
+    } else {
+      console.log(space + green('✓') + ` ${result.name} ${result.version}`);
     }
   }
 }

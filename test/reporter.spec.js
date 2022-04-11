@@ -712,3 +712,70 @@ describe('Check Quality Gate Locally', () => {
   });
 
 });
+
+describe('Generate jUnit report', () => {
+
+  before(() => {
+    if (fs.existsSync('contract-tests-junit.xml')) {
+      fs.unlinkSync('contract-tests-junit.xml');
+    }
+    const pfr = require('../src/index');
+    pfr.config.username = 'scanner';
+    pfr.config.password = 'scanner';
+    pfr.config.checkQualityGate = true;
+    pfr.config.checkQualityGateDefaultDelay = 1;
+    pfr.config.checkQualityGateTimeout = 2000;
+    pfr.config.checkQualityGateLocal = true;
+    pfr.config.publish = false;
+    pfr.config.jUnitReporter = true;
+  });
+
+  after(() => {
+    const pfr = require('../src/index');
+    pfr.config.username = '';
+    pfr.config.password = '';
+    pfr.config.checkQualityGate = false;
+    pfr.config.checkQualityGateLocal = false;
+    pfr.config.publish = true;
+    pfr.config.jUnitReporter = false;
+  });
+
+  describe('Reporter - Quality Gate Status OK', () => {
+
+    before(() => {
+      mock.addInteraction('create a session');
+      mock.addInteraction('verify compatibility with interactions');
+      mock.addInteraction('verify quality gate status with consumers and providers');
+    });
+
+    it('running a normal spec with valid interaction should contact with flow server', async () => {
+      await pactum.spec()
+        .get('/api/get')
+        .useInteraction({
+          provider: 'provider1',
+          flow: 'flow1',
+          request: {
+            method: 'GET',
+            path: '/api/get'
+          },
+          response: {
+            status: 200
+          }
+        })
+        .expectStatus(200);
+
+      await assert.rejects(async () => { await reporter.end(); })
+      
+      assert.strictEqual(mock.getInteraction('verify compatibility with interactions').exercised, true);
+      assert.strictEqual(mock.getInteraction('verify quality gate status with consumers and providers').exercised, true);
+      fs.existsSync('contract-tests-junit.xml');
+    });
+
+    after(() => {
+      mock.clearInteractions();
+      reset();
+    });
+
+  });
+
+});

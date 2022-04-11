@@ -14,6 +14,8 @@ module.exports = {
   checkQualityGateTimeout: 10000,
   checkQualityGateDefaultDelay: 2000,
   checkQualityGateEnvironments: '',
+  jUnitReporter: false,
+  jUnitReporterPath: 'contract-tests-junit.xml',
   _session_token: '',
   _analysis_id: ''
 }

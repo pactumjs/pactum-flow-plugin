@@ -1,6 +1,10 @@
 const fs = require('fs');
+const config = require('./config');
 
-function generate(results) {
+function generateXMLReport(results) {
+  if (!config.jUnitReporter) {
+    return
+  }
   const test_suites = [];
   let test_suite_failures = 0;
   for (let i = 0; i < results.length; i++) {
@@ -59,9 +63,9 @@ function generate(results) {
     <testsuites name="Contract Tests" tests="${test_suites.length}" failures="${test_suite_failures}" errors="" time="0">
       ${test_suites.reduce((p, c) => { return `${p}${c}\n` }, '')}
     </testsuites>`;
-  fs.writeFileSync('junit.xml', report);
+  fs.writeFileSync(config.jUnitReporterPath, report);
 }
 
 module.exports = {
-  generate
+  generateXMLReport
 }

@@ -1,57 +1,11 @@
 const { bold, red, green, magenta, gray, yellow } = require('kleur');
-const request = require('phin-retry');
 const config = require('./config');
-const { getHeaders, sleep } = require('./helper');
 const store = require('./store');
-
-async function waitForJobToFinish() {
-  console.log("Waiting for analysis to process")
-  await sleep(config.checkQualityGateDefaultDelay);
-  const res = await request.get({
-    url: `${config.url}/api/flow/v1/jobs/${config._analysis_id}`,
-    headers: getHeaders(),
-    parse: 'json',
-    retry: config.checkQualityGateTimeout / 1000,
-    delay: 1000,
-    retryStrategy: ({ response, error }) => {
-      if (error) return true;
-      if (response.body.status === 'running') return true;
-    }
-  });
-  if (res.status === 'failed') {
-    console.log(`Job with id - "${config._analysis_id}" failed to complete`);
-    throw "Job Failed";
-  }
-  if (res.status === 'running') {
-    console.log(`Job with id - "${config._analysis_id}" is still running`);
-    throw "Job is still running";
-  }
-}
-
-function getQualityGateStatus() {
-  return request.get({
-    url: `${config.url}/api/flow/v1/quality-gate/status`,
-    qs: {
-      projectId: config.projectId,
-      version: config.version
-    },
-    headers: getHeaders(),
-    parse: 'json'
-  });
-}
+const { waitForJobToFinish, getQualityGateStatus, verifyCompatibility, verifyQualityGateStatus} = require('./clients/flow')
 
 function check(results) {
   let allPassed = true;
-  let envs = new Set();
-  if (config.checkQualityGateEnvironments) {
-    if (typeof config.checkQualityGateEnvironments === 'string') {
-      envs = new Set(config.checkQualityGateEnvironments.split(','));
-    } else {
-      envs = new Set(config.checkQualityGateEnvironments);
-    }
-  } else {
-    envs = new Set(results.map(result => result.environment));
-  }
+  const envs = new Set(getEnvironments(results.map(result => result.environment)));
   for (let i = 0; i < results.length; i++) {
     const result = results[i];
     if (envs.has(result.environment)) {
@@ -102,65 +56,34 @@ function print() {
   console.log();
 }
 
-function getEnvironments() {
+function getEnvironments(default_envs = []) {
   let envs = config.checkQualityGateEnvironments;
   if (typeof config.checkQualityGateEnvironments === 'string') {
     if (config.checkQualityGateEnvironments) {
       envs = config.checkQualityGateEnvironments.split(',');
     } else {
-      envs = [];
+      envs = default_envs;
     }
   }
   return envs;
 }
 
-function verifyCompatibility() {
-  const interactions = store.getInteractions();
-  interactions.forEach(_interaction => {
-    _interaction.analysisId = "abcdefghijklmnopqrstuvwx";
-    _interaction.response.statusCode = _interaction.response.status;
-  });
-
-  const flows = store.getFlows();
-  flows.forEach(_flow => {
-    _flow.analysisId = "abcdefghijklmnopqrstuvwx";
-  });
-  return request.post({
-    url: `${config.url}/api/flow/v1/compatibility/project/verify`,
-    headers: getHeaders(),
-    body: {
-      "projectId": config.projectId,
-      "environments": getEnvironments(),
-      "interactions": interactions,
-      "flows": flows
-    }
-  });
-}
-
-function verifyQualityGateStatus(results) {
-  return request.post({
-    url: `${config.url}/api/flow/v1/quality-gate/status/verify`,
-    headers: getHeaders(),
-    body: {
-      "projectId": config.projectId,
-      "environments": getEnvironments(),
-      "compatibility_results": results
-    }
-  });
-}
-
-async function checkQualityGate() {
+function checkQualityGate(results) {
   if (!config.checkQualityGate) {
     return;
   }
   print();
+  check(results);
+}
+
+async function getQualityGateResults() {
   if (config.checkQualityGateLocal) {
-    const results = await verifyCompatibility();
-    check(await verifyQualityGateStatus(results));
+    const results = await verifyCompatibility(store.getFlows(), store.getInteractions(), getEnvironments());
+    return await verifyQualityGateStatus(results, getEnvironments());
   } else {
     await waitForJobToFinish();
-    check(await getQualityGateStatus());
+    return await getQualityGateStatus();
   }
 }
 
-module.exports = { checkQualityGate };
+module.exports = { checkQualityGate, getQualityGateResults };

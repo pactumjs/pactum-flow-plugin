@@ -185,7 +185,7 @@ addInteractionHandler('add flow with interaction', () => {
             "responseTime": like(6)
           },
           "analysisId": "aid",
-          "interactions": [ "iid" ]
+          "interactions": ["iid"]
         }
       ]
     },
@@ -264,7 +264,7 @@ addInteractionHandler('get failed job', () => {
           body: {
             status: 'running'
           }
-        }, 
+        },
         1: {
           status: 200,
           body: {
@@ -505,6 +505,76 @@ addInteractionHandler('verify quality gate status', () => {
           environment: 'latest',
           providers: [],
           status: 'OK'
+        }
+      ]
+    }
+  }
+});
+
+addInteractionHandler('verify quality gate status with consumers and providers', () => {
+  return {
+    id: 'verify quality gate status with consumers and providers',
+    provider: 'pactum_flow-api',
+    request: {
+      method: 'POST',
+      path: '/api/flow/v1/quality-gate/status/verify',
+      body: {
+        "projectId": "pid",
+        "environments": [],
+        "compatibility_results": [
+          {
+            "consumer": "p-id-2",
+            "consumerVersion": "2.0.1",
+            "provider": "p-id-1",
+            "providerVersion": "1.0.1",
+            "status": "PASSED",
+            "exceptions": []
+          }
+        ]
+      }
+    },
+    response: {
+      status: 200,
+      body: [
+        {
+          "environment": "latest",
+          "status": "OK",
+          "consumers": [
+            {
+              "name": "p-id-1",
+              "version": "1.0.1",
+              "status": "PASSED",
+              "message": "",
+              "exceptions": []
+            }
+          ],
+          "providers": []
+        },
+        {
+          "environment": "test",
+          "status": "ERROR",
+          "consumers": [],
+          "providers": [
+            {
+              "name": "p-id-1",
+              "version": "",
+              "status": "ERROR",
+              "message": "Project Not Found",
+              "exceptions": []
+            },
+            {
+              "name": "p-id-2",
+              "version": "1.2.3",
+              "status": "ERROR",
+              "message": "Project Not Found",
+              "exceptions": [
+                {
+                  "flow": "p-id-1-f-name-1",
+                  "error": "Failed to match request method"
+                }
+              ]
+            }
+          ]
         }
       ]
     }

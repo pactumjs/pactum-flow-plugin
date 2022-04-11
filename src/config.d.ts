@@ -13,3 +13,5 @@ export let checkQualityGateLocal: boolean;
 export let checkQualityGateTimeout: number;
 export let checkQualityGateDefaultDelay: number;
 export let checkQualityGateEnvironments: string | string[];
+export let jUnitReporter: boolean;
+export let jUnitReporterPath: string;

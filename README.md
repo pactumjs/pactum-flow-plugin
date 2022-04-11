@@ -47,4 +47,6 @@ after(async () => {
 | `checkQualityGateTimeout`      | number  | check quality gate timeout                    | defaults to `10000`ms             |
 | `checkQualityGateEnvironments` | string  | check quality gate against the given envs     | defaults to all envs              |
 | `checkQualityGateDefaultDelay` | number  | default delay to wait for processing analysis | defaults to `2000`ms              |
+| `jUnitReporter`                | boolean | enable jUnit reporter                         | defaults to false                 |
+| `jUnitReporterPath`            | string  | junit reporter path                           | defaults to `contract-tests`      |
 
